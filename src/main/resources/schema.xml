@@ -5,6 +5,9 @@
     <schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="100">
         <table name="hotnews" primaryKey="ID" autoIncrement="true" dataNode="dn1,dn2,dn3"
                rule="mod-long" />
+
+		<table name="company" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
+		<table name="employee" primaryKey="ID" dataNode="dn1,dn2" rule="sharding-by-intfile" />
     </schema>
 
     <dataNode name="dn1" dataHost="localhost1" database="db1" />

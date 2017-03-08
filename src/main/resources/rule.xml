@@ -8,10 +8,20 @@
             <algorithm>mod-long</algorithm>
         </rule>
     </tableRule>
-
+    
+	<tableRule name="sharding-by-intfile">
+		<rule>
+			<columns>sharding_id</columns>
+			<algorithm>hash-int</algorithm>
+		</rule>
+	</tableRule>
+	
     <function name="mod-long" class="io.mycat.route.function.PartitionByMod">
         <!-- how many data nodes -->
         <property name="count">3</property>
     </function>
-
+	<function name="hash-int"
+		class="io.mycat.route.function.PartitionByFileMap">
+		<property name="mapFile">partition-hash-int.txt</property>
+	</function>
 </mycat:rule>
