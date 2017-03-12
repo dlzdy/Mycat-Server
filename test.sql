@@ -20,3 +20,6 @@ create table hotnews (
     create_tm datetime,
     content text
 ) engine = innodb default character set = 'utf8';
+
+drop table company if exists;
+ create table company(id int not null primary key,name varchar(100));
