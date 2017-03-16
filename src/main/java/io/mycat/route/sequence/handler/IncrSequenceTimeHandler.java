@@ -93,7 +93,38 @@ public class IncrSequenceTimeHandler implements SequenceHandler {
 			this.datacenterId = datacenterId;
 		}
 
+		/**
+		 * 改进sequence按顺序递增，为了分片目的。否则后12bit均为0了
+		 * @return
+		 */
 		public synchronized long nextId() {
+			long timestamp = timeGen();
+			if (timestamp < lastTimestamp) {
+				try {
+					throw new Exception("Clock moved backwards.  Refusing to generate id for "+ (lastTimestamp - timestamp) + " milliseconds");
+				} catch (Exception e) {
+					LOGGER.error("error",e);
+				}
+			}
+
+			if (lastTimestamp == timestamp) {
+				// 当前毫秒内，则+1
+				sequence = (sequence + 1) & sequenceMask;
+				if (sequence == 0) {
+					// 当前毫秒内计数满了，则等待下一秒
+					timestamp = tilNextMillis(lastTimestamp);
+				}
+			} else {//不在当前毫秒内，计数继续增加
+				sequence = (sequence + 1) & sequenceMask;
+			}
+			lastTimestamp = timestamp;
+			// ID偏移组合生成最终的ID，并返回ID
+			long nextId = ((timestamp - twepoch) << timestampLeftShift) | (datacenterId << datacenterIdShift) | (workerId << workerIdShift) | sequence;
+
+			return nextId;
+		}
+		public synchronized long nextIdOld() {
+			
 			long timestamp = timeGen();
 			if (timestamp < lastTimestamp) {
 			try {
@@ -115,9 +146,7 @@ public class IncrSequenceTimeHandler implements SequenceHandler {
 			}
 			lastTimestamp = timestamp;
 			// ID偏移组合生成最终的ID，并返回ID
-			long nextId = ((timestamp - twepoch) << timestampLeftShift)
-					| (datacenterId << datacenterIdShift)
-					| (workerId << workerIdShift) | sequence;
+			long nextId = ((timestamp - twepoch) << timestampLeftShift) | (datacenterId << datacenterIdShift) | (workerId << workerIdShift) | sequence;
 
 			return nextId;
 		}
